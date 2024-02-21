@@ -1,11 +1,8 @@
-﻿using Normal.Realtime;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Normal.Realtime;
 using Normal.Realtime.Serialization;
 
-public class BrushStroke : RealtimeComponent<BrushStrokeModel>
-{
+public class BrushStroke : RealtimeComponent<BrushStrokeModel> {
     [SerializeField]
     private BrushStrokeMesh _mesh = null;
 
@@ -25,8 +22,6 @@ public class BrushStroke : RealtimeComponent<BrushStrokeModel>
         // Add a ribbon segment if the end of the ribbon has moved far enough
         AddRibbonPointIfNeeded();
     }
-
-  
 
     // Interface
     public void BeginBrushStrokeWithBrushTipPoint(Vector3 position, Quaternion rotation) {
@@ -50,7 +45,6 @@ public class BrushStroke : RealtimeComponent<BrushStrokeModel>
         AddRibbonPoint(position, rotation);
         model.brushStrokeFinalized = true;
     }
-
 
     // Ribbon drawing
     private void AddRibbonPointIfNeeded() {
@@ -81,38 +75,8 @@ public class BrushStroke : RealtimeComponent<BrushStrokeModel>
         ribbonPoint.rotation = rotation;
         model.ribbonPoints.Add(ribbonPoint);
     }
-    protected override void OnRealtimeModelReplaced(BrushStrokeModel previousModel, BrushStrokeModel currentModel)
-    {
-        // Clear Mesh
-        _mesh.ClearRibbon();
 
-        if (previousModel != null)
-        {
-            // Unregister from events
-            previousModel.ribbonPoints.modelAdded -= RibbonPointAdded;
-        }
-
-        if (currentModel != null)
-        {
-            // Replace ribbon mesh
-            foreach (RibbonPointModel ribbonPoint in currentModel.ribbonPoints)
-                _mesh.InsertRibbonPoint(ribbonPoint.position, ribbonPoint.rotation);
-
-            // Update last ribbon point to match brush tip position & rotation
-            _ribbonEndPosition = model.brushTipPosition;
-            _ribbonEndRotation = model.brushTipRotation;
-            _mesh.UpdateLastRibbonPoint(model.brushTipPosition, model.brushTipRotation);
-
-            // Turn off the last ribbon point if this brush stroke is finalized
-            _mesh.skipLastRibbonPoint = model.brushStrokeFinalized;
-
-            // Let us know when a new ribbon point is added to the mesh
-            currentModel.ribbonPoints.modelAdded += RibbonPointAdded;
-        }
-    }
-
-    private void RibbonPointAdded(RealtimeArray<RibbonPointModel> ribbonPoints, RibbonPointModel ribbonPoint, bool remote)
-    {
+    private void RibbonPointAdded(RealtimeArray<RibbonPointModel> ribbonPoints, RibbonPointModel ribbonPoint, bool remote) {
         // Add ribbon point to the mesh
         _mesh.InsertRibbonPoint(ribbonPoint.position, ribbonPoint.rotation);
     }
@@ -140,5 +104,32 @@ public class BrushStroke : RealtimeComponent<BrushStrokeModel>
 
         // Update the end of the ribbon mesh
         _mesh.UpdateLastRibbonPoint(_ribbonEndPosition, _ribbonEndRotation);
+    }
+
+    protected override void OnRealtimeModelReplaced(BrushStrokeModel previousModel, BrushStrokeModel currentModel) {
+        // Clear Mesh
+        _mesh.ClearRibbon();
+
+        if (previousModel != null) {
+            // Unregister from events
+            previousModel.ribbonPoints.modelAdded -= RibbonPointAdded;
+        }
+
+        if (currentModel != null) {
+            // Replace ribbon mesh
+            foreach (RibbonPointModel ribbonPoint in currentModel.ribbonPoints)
+                _mesh.InsertRibbonPoint(ribbonPoint.position, ribbonPoint.rotation);
+
+            // Update last ribbon point to match brush tip position & rotation
+            _ribbonEndPosition = model.brushTipPosition;
+            _ribbonEndRotation = model.brushTipRotation;
+            _mesh.UpdateLastRibbonPoint(model.brushTipPosition, model.brushTipRotation);
+
+            // Turn off the last ribbon point if this brush stroke is finalized
+            _mesh.skipLastRibbonPoint = model.brushStrokeFinalized;
+
+            // Let us know when a new ribbon point is added to the mesh
+            currentModel.ribbonPoints.modelAdded += RibbonPointAdded;
+        }
     }
 }

@@ -4,10 +4,12 @@ using UnityEngine.XR;
 using Normal.Realtime;
 
 public class Brush : MonoBehaviour {
+    // Reference to Realtime to use to instantiate brush strokes
+    [SerializeField] private Realtime _realtime = null;
+
     // Prefab to instantiate when we draw a new brush stroke
     [SerializeField] private GameObject _brushStrokePrefab = null;
-    // Reference to Realtime to use to instantiate brush strokes
-    [SerializeField] private Realtime _realtime;
+
     // Which hand should this brush instance track?
     private enum Hand { LeftHand, RightHand };
     [SerializeField] private Hand _hand = Hand.RightHand;
@@ -18,9 +20,9 @@ public class Brush : MonoBehaviour {
     private BrushStroke _activeBrushStroke;
 
     private void Update() {
-
         if (!_realtime.connected)
             return;
+
         // Start by figuring out which hand we're tracking
         XRNode node    = _hand == Hand.LeftHand ? XRNode.LeftHand : XRNode.RightHand;
         string trigger = _hand == Hand.LeftHand ? "Left Trigger" : "Right Trigger";
@@ -29,7 +31,7 @@ public class Brush : MonoBehaviour {
         bool handIsTracking = UpdatePose(node, ref _handPosition, ref _handRotation);
 
         // Figure out if the trigger is pressed or not
-        bool triggerPressed = Input.GetAxisRaw(trigger) > 0.1f;
+        bool triggerPressed =  Input.GetAxisRaw(trigger) > 0.1f;
 
         // If we lose tracking, stop drawing
         if (!handIsTracking)
@@ -37,8 +39,8 @@ public class Brush : MonoBehaviour {
 
         // If the trigger is pressed and we haven't created a new brush stroke to draw, create one!
         if (triggerPressed && _activeBrushStroke == null) {
-            // Instantiate a copy of the Brush Stroke prefab.
-            GameObject brushStrokeGameObject = Realtime.Instantiate(_brushStrokePrefab.name, Realtime.InstantiateOptions.defaults);
+            // Instantiate a copy of the Brush Stroke prefab, set it to be owned by us.
+            GameObject brushStrokeGameObject = Realtime.Instantiate(_brushStrokePrefab.name, ownedByClient: true, useInstance: _realtime);
 
             // Grab the BrushStroke component from it
             _activeBrushStroke = brushStrokeGameObject.GetComponent<BrushStroke>();
